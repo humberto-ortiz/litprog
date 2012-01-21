@@ -1,0 +1,15 @@
+
+\title{\texttt{noweb} Hello, world}
+\author{Humberto Ortiz-Zuazaga}
+\maketitle
+
+This is \texttt{noweb-hello.nw}, a simple \texttt{noweb} program for
+didactic purposes.
+
+<<*>>=
+#include <stdio>
+
+int main() {
+	printf("Hello, world.");
+	return 0;
+}
