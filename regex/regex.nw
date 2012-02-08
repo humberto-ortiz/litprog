@@ -1,0 +1,94 @@
+% -*- mode: noweb; noweb-default-code-mode: c-mode; -*-
+\documentclass{article}
+\usepackage{noweb}
+
+\begin{document}
+\title{Toy grep}
+\author{Brian Kernighan, Rob Pike, Humberto Ortiz-Zuazaga}
+\maketitle
+\begin{abstract}
+  In ``Beautiful Code'', Brian Kernighan presents regular expression
+  code by Rob Pike~\cite{beauty}. I'm going to try to wrap the code in
+  a main that makes a grep of a file.
+\end{abstract}
+
+The main loop is adapted from an
+  example by user [[stover]] on programmersheaven. It uses a fixed
+  size buffer for lines. Files with lines longer than 256 characters
+  will likely crash the program.
+<<*>>=
+#include <stdio.h>
+#include <string.h>
+
+<<function definitions>>
+
+int main(int argc, char *argv[]) {
+    char line[256];
+    FILE *fp;
+
+    fp = fopen(argv[2], "r");
+    if(!fp) return 1;
+    while(NULL != fgets(line, sizeof(line), fp)) {
+        int last = strlen(line)-1;
+        if(line[last] == '\n')
+            line[last] = 0;
+        if (match(argv[1], line)) {
+            printf("%s\n", line);
+        }
+    }
+    return 0;
+}
+@ Pike defines 3 beautiful mutually recursive functions to match regular
+expressions.
+<<function definitions>>=
+<<match: search for regexp anywhere in text>>
+<<matchhere: search for regexp at beginning of text>>
+<<matchstar: search for c*regexp at beginning of text>>
+@ The most general is [[match]], but it simply calls [[matchhere]].
+<<match: search for regexp anywhere in text>>=
+int match(char *regexp, char *text)
+{
+    if (regexp[0] == '^')
+        return matchhere(regexp+1, text);
+    do {    /* must look even if string is empty */
+        if (matchhere(regexp, text))
+            return 1;
+    } while (*text++ != '\0');
+    return 0;
+}
+@ The [[matchhere]] function has the base cases for the
+recursion. If the [[regexp]] is empty, we've matched the entire
+expression. If the second character is [[*]], call the
+[[matchstar]] funcntion. If the tail of the [[regexp]] is
+[[$]] we must also match the end of the [[text]]. Otherwise, if the
+start of the [[regexp]] matches the start of the [[text]], match the rest of
+each.
+<<matchhere: search for regexp at beginning of text>>=
+int matchhere(char *regexp, char *text)
+{
+  if (regexp[0] == '\0')
+    return 1;
+  if (regexp[1] == '*')
+    return matchstar(regexp[0], regexp+2, text);
+  if (regexp[0] == '$' && regexp[1] == '\0')
+    return *text == '\0';
+  if (*text!='\0' && (regexp[0]=='.' || regexp[0]==*text))
+    return matchhere(regexp+1, text+1);
+  return 0;
+}
+@ To handle Klein stars, the [[matchstar]] function simply consumes
+leading characters that match [[c]], and calls [[matchhere]].
+<<matchstar: search for c*regexp at beginning of text>>=
+int matchstar(int c, char *regexp, char *text)
+{
+    do {    /* a * matches zero or more instances */
+        if (matchhere(regexp, text))
+            return 1;
+    } while (*text != '\0' && (*text++ == c || c == '.'));
+    return 0;
+}
+@ 
+\begin{thebibliography}{9}
+  \bibitem{beauty} \textit{Beautiful Code.} Andy Oram, Greg Wilson, eds. O'Reilly Media. June 2007.
+\end{thebibliography}   
+@ \end{document}
