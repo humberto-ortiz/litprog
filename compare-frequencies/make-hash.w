@@ -1,9 +1,10 @@
-@ make-hash. Count word frequencies in two documents with hash tables.
+\def\covernote{Copyright 2012 Humberto Ortiz-Zuazaga -- University of Puerto Rico}
+
+@* make-hash.
+Use hash tables to count word frequencies in two documents. Output the
+words in either document, and the frequencies of ocurrence of each word in each document.
 
 @(make-hash.cpp@>=
-// make-hash.cpp - Test Sedgewick's hash functions.
-// Copyright 2011 - Humberto Ortiz-Zuazaga
-
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -14,62 +15,68 @@
 using namespace std;
 
 int main() {
-  ifstream pg1 ("pg1.txt");
-  ifstream pg11 ("pg11.txt");
-
-  ST<Key> table1 (1024);
-  ST<Key> table2 (1024);
-  ST<Key> table3 (1024);
+  ifstream pg1 ("pg1.txt");   // stream for Declaration of Independence
+  ifstream pg11 ("pg11.txt"); // stream for Alice in Wonderland
+  
+  ST<Key> table1 (1024); // words in pg1 
+  ST<Key> table2 (1024); // words in pg11
+  ST<Key> table3 (1024); // the union of the words in pg1 and pg11
 
   string word;
 
   int i = 0;
 
+  @<Read the inputs.@>;
+  @<For each word seen, print word and frequencies@>;
+}
+
+@ To read the inputs, we use the C++ input tokenizer. Each word found
+is inserted into a hash table specific to the file and a hash table
+common to both files. Inserting a word already present results in the
+word count being incremented.
+
+@<Read the inputs.@>=
   while (pg1 >> word) {
 
-    Item item(word, 1);
-    table1.insert(item);
-    table3.insert(item);
+    Item item(word, 1); // create an Item
+    table1.insert(item); // insert into table1
+    table3.insert(item); // and into the union
   }
 
   while (pg11 >> word) {
 
     Item item(word, 1);
-    table2.insert(item);
-    table3.insert(item);
+    table2.insert(item); // insert into table2
+    table3.insert(item); // and the union
   }
 
+@ |table3| has the list of all words in either document. We can
+flatten the table into a list, and then iterate over all the
+words. For each word, print the word, then look up the word in the
+hash tables and print the frequencies.
+
+@<For each word seen, print word and frequencies@>=
   list<string> words = table3.flatten();
 
   list<string>::iterator it;
 
   string myword;
 
-  cout << "mylist contains:";
+  cout << "mylist contains:" << endl;
   for ( it=words.begin() ; it != words.end(); it++ ) {
     myword = *it;
     cout << myword << ": ";
-    Item col1 = table1.search(myword);
-    if (!col1.null()) {
-      col1.show();
-    } else {
-      cout << "not found";
-    }
+    table1.search(myword).show(); // print frequency in pg1
     cout << ":" ;
-    Item col2 = table2.search(myword);
-    if (!col2.null()) {
-      col2.show();
-    } else {
-      cout << "not found";
-    }
+    table2.search(myword).show(); // print frequency in pg11
+    cout << endl;
   }
-}
 
-@ The hash function.
+@* The hash function.
 
 @(hash.cpp@>=
 // This code is from "Algorithms in C++, Third Edition," by Robert
-// Sedgewick, Addison-Wesley, 1999."
+// Sedgewick, Addison-Wesley, 1999.
 
 #include <string>
 
@@ -84,11 +91,11 @@ int hashU(string str, int M)
     return (h < 0) ? (h + M) : h;
   }
 
-@ The hash table (a symbol table).
+@* The hash table (a symbol table).
 
 @(ST.cxx@>=
 // This code is from "Algorithms in C++, Third Edition," by Robert
-// Sedgewick, Addison-Wesley, 1999."
+// Sedgewick, Addison-Wesley, 1999.
 
 // Stolen from Program 12.6
 // Modified with code from Program 14.3
@@ -173,7 +180,7 @@ class ST
 
 };
 
-@ Hash table entries are word, frequency.
+@ Hash table entries are word as a |string| in |keyval|, frequency in |info|.
 
 @(Item.cpp@>=
 // This code is from "Algorithms in C++, Third Edition," by Robert
@@ -193,7 +200,7 @@ class Item
       int info;
     public:
       Item() 
-        { keyval = maxKey; } 
+        { keyval = ""; info=0; } 
     Item(Key k, int v) 
     { keyval = k; info = v; } 
       Key key()
@@ -203,7 +210,7 @@ class Item
       int scan(istream& is = cin)
         { return (is >> keyval >> info) != 0; }
       void show(ostream& os = cout)
-        { os << keyval << " " << info << endl; }
+        { os << info; }
     void addone() {
       info++;
     }
