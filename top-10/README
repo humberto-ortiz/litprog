@@ -5,6 +5,22 @@ Sample data is in test.out, see
 http://plone.hpcf.upr.edu/Members/humberto/Wiki_Folder.2003-07-17.5848/TheSpinningCubeofImpendingDoom
 for more information on the data.
 
+Flows are recorded using the flow-tools programs described here:
+
+http://www.splintered.net/sw/flow-tools/
+
+Sample data in ascii format is in the file
+
+  test.out
+
+Was printed with the following command:
+
+  flow-cat ft-v05.2004-07-04.100412-0400 | flow-print > test.out
+
+The binary data in flow-tools format is here:
+
+  ft-v05.2004-07-04.100412-0400
+
 Run as:
 
 $ python top-10.py | tail
